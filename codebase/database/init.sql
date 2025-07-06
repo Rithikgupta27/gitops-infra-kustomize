@@ -1,0 +1,35 @@
+-- User Auth Table
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password VARCHAR(100) NOT NULL
+);
+
+-- Payments
+CREATE TABLE IF NOT EXISTS accounts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  username VARCHAR(50) NOT NULL,
+  balance DECIMAL(10,2) DEFAULT 0
+);
+
+
+-- Transaction Table
+CREATE TABLE IF NOT EXISTS transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  from_user VARCHAR(50),
+  to_user VARCHAR(50),
+  amount DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- Sessions Table
+CREATE TABLE IF NOT EXISTS sessions (
+  id VARCHAR(255) PRIMARY KEY,
+  user_id INT NOT NULL,
+  token TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
