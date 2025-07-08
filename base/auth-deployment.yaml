@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: microservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-microservice           
+  template:                            
+    metadata:
+      labels:
+        app: auth-microservice         
+    spec:
+      containers:
+        - name: auth-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80

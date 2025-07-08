@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: microservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: payment-container
+          image: rithikgupta001/payment-microservice:latest
+          ports:
+            - containerPort: 3001

@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: microservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: auth-container
+          image: rithikgupta001/auth-microservice:latest
+          ports:
+            - containerPort: 3000
