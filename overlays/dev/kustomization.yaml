@@ -4,11 +4,11 @@ resources:
   - ../../base
 
 patches:
-  - path: ./auth-deployment-patch.yaml
+  - path: ./auth/auth-deployment-patch.yaml
     target:
       kind: Deployment
       name: auth-deployment
-  - path: ./payment-deployment-patch.yaml
+  - path: ./payment/payment-deployment-patch.yaml
     target:
       kind: Deployment
       name: payment-deployment
