@@ -6,4 +6,6 @@ resources:
   - ./auth/auth-service.yaml
   - ./payment/payment-deployment.yaml
   - ./payment/payment-service.yaml
+  - ./database/database.yaml
+  - ./database/database-service.yaml
   - ingress.yaml
