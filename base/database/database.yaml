@@ -9,7 +9,7 @@ metadata:
   namespace: microservice
 spec:
   serviceName: "database-service"
-  replicas: 2
+  replicas: 2   # ❗ Valid only for single-node clusters due to RWO volume access mode
   selector:
     matchLabels:
       app: mysql
