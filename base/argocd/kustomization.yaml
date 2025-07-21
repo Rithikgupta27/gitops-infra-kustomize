@@ -1,0 +1,11 @@
+resources:
+  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  - sops-config.yaml
+  - argocd-service-acc.yaml
+  - argocd-ingress.yaml
+
+patches:
+  - path: argocd-cm.patch.yaml
+  - path: argocd-ksops.patch.yaml
+
+namespace: argocd

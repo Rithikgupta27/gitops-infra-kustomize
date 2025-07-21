@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sops-config
+  namespace: argocd
+data:
+  .sops.yaml: |
+    creation_rules:
+    key_groups:
+      - kms:
+          - arn:aws:kms:us-west-1:<AccountID>:key/9aad754e-3601-4ab1-b9c7-aeec3eedea95
