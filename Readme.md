@@ -21,3 +21,8 @@ This repository contains a GitOps-based Kubernetes infrastructure setup using **
 - you first install efs-csi driver if iam using efs
 - Create PersistentVolume configuration
 - Create PersistenceVolumeClaim and Attach to mysql stateful-set 
+
+# We Required service to communicate with deployments
+
+Ingress → Service → Deployment → Pods
+
