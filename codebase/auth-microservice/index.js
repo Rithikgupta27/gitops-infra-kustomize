@@ -6,10 +6,10 @@ const app = express();
 app.use(express.json());
 
 const dbConfig = {
-  host: "localhost",
-  port: 3301,
+  host: process.env.MYSQL_HOST,
+  port: 3306,
   user: "root",
-  password: "pass",
+  password: process.env.DB_PASSWORD,
   database: "mysql1.0",
 };
 
