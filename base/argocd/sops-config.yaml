@@ -8,4 +8,4 @@ data:
     creation_rules:
     key_groups:
       - kms:
-          - arn:aws:kms:us-west-1:<AccountID>:key/9aad754e-3601-4ab1-b9c7-aeec3eedea95
+          - arn:aws:kms:us-east-1:767397915565:key/cec7485f-1425-46f4-8923-b148599714bb

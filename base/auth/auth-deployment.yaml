@@ -17,12 +17,12 @@ spec:
         - name: auth-container
           image: nginx:latest
           ports:
-            - containerPort: 80
+            - containerPort: 3000
           volumeMounts:
             - name:  auth-volume
               mountPath:  /app
       volumes:
         - name:  auth-volume
           hostPath:
-              path:  /data/auth
+              path:  /
               type:  DirectoryOrCreate 
