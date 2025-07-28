@@ -14,7 +14,11 @@ This repository contains a GitOps-based Kubernetes infrastructure setup using **
 ## What You'll Achieve
 - Store DB secrets in a Kubernetes Secret (encrypted)
 - Encrypt the secret with AWS KMS
+
+'sops --encrypt --kms arn:aws:kms:us-east-1:123456789:key/aad754e-3601-4ab1-b9c7-jasdjasghdhsahd secrets.yaml > secrets.enc.yaml'
+
 - Decrypt it on the fly using KSOPS + Kustomize
+
 
 # Using PersistVolume 
 ## What You'll do

@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: microservice
+spec:
+  template:
+    spec:
+      serviceAccountName: ecr-reader
+      containers:
+        - name: auth-container
+          image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest
+          ports:
+            - containerPort: 3001

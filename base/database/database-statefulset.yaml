@@ -1,7 +1,3 @@
-#This StatefulSet configuration sets up a database service in a Kubernetes cluster using a `ReadWriteOnce` PVC to ensure data persists across pod restarts. It is suitable for single-node clusters. 
-# For multi-node clusters, you must use `volumeClaimTemplates` to provision separate PVCs per replica or use a `ReadWriteMany` PVC if shared access is required. 
-# Ensure the corresponding Persistent Volume (PV) and PVC are created before applying this configuration.
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -9,7 +5,7 @@ metadata:
   namespace: microservice
 spec:
   serviceName: "database-service"
-  replicas: 2   # ❗ Valid only for single-node clusters due to RWO volume access mode
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -18,16 +14,23 @@ spec:
       labels:
         app: mysql
     spec:
+      serviceAccountName: ecr-reader
       containers:
       - name: database-container
-        image: rithikgupta001/kustomize-app-database:latest
+        image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/database-service:latest
         ports:
         - containerPort: 3306
           name: mysql-port
         volumeMounts:
-        - name: database-volume
+        - name: mysql-data
           mountPath: /var/lib/mysql
-      volumes:
-      - name: database-volume
-        persistentVolumeClaim:
-          claimName: database-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: gp2-csi   
+      resources:
+        requests:
+          storage: 10Gi

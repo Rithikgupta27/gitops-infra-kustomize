@@ -1,21 +1,22 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources:
-  - ../../../base/auth
-
 labels:
   - pairs: 
      env: dev 
     includeSelectors: false
     includeTemplates: true
 
+resources:
+  - ../../../base/payment
+
 configMapGenerator:
   - name: dev-envs
     envs:
-      - ./dev.properties
+      - ../dev.properties
 
-patches:
-  - path: auth-deployment-patch.yaml
 # generators:
-#   - auth-secrets-generator.yaml
+#   - payment-secrets-generator.yaml
+
+patchesStrategicMerge:
+  - payment-deployment-patch.yaml

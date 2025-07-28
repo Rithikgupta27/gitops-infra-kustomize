@@ -4,10 +4,11 @@ metadata:
   name: auth-service             
   namespace: microservice
 spec:
+  type: NodePort
   selector:
     app: auth-microservice                
   ports:
     - protocol: TCP
       port: 80               
       targetPort: 3000       
-  type: ClusterIP
+  

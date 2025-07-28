@@ -1,10 +1,6 @@
 Step 1: Create an EKS Cluster using eksctl
 
-eksctl create cluster \       
-  --name eks-cluster \
-  --region us-west-1 \
-  --nodegroup-name standard-workers \
-  --node-type t3.medium \
+eksctl create cluster --name kube-demo1 --region us-east-1 --nodegroup-name standard-workers --node-type t3.medium \
   --nodes 1 \
   --nodes-min 1 \
   --nodes-max 2 \
@@ -20,7 +16,7 @@ A managed node group
 
 Automatically generates a kubeconfig for kubectl
 --> Update the kube-config
-aws eks update-kubeconfig --name ecom-cluster --region us-east-1
+aws eks update-kubeconfig --name kube-demo --region us-east-1
 
 
 🔐 Step 2: Map your IAM role to admin using aws-auth
