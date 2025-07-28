@@ -1,0 +1,31 @@
+services:
+  auth-microservice:
+    build: ./auth-microservice
+    container_name: auth
+    ports:
+      - "3000:3000"
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=mysql1.0
+      - DB_PASSWORD=pass
+    depends_on:
+      - database
+  payment-microservice:
+    build: ./payment-microservice
+    container_name: payment
+    ports:
+      - "3002:3002"
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=mysql1.0
+      - DB_PASSWORD=pass
+    depends_on:
+      - database
+  database:
+     build: ./database
+     container_name: mysql
+     ports:
+       - "3306:3306"
+     

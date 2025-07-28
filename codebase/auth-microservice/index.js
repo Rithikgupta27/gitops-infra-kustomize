@@ -1,7 +1,8 @@
 const express = require("express");
 const mysql = require("mysql2/promise");
 const crypto = require("crypto");
-
+dotenv = require("dotenv");
+dotenv.config();
 const app = express();
 app.use(express.json());
 
@@ -36,6 +37,7 @@ app.post("/signup", async (req, res) => {
     console.error("Signup error:", err); // Logs full error to help debugging
     res.status(400).send({ error: "Email or username already exists" });
   } finally {
+    console.warn("Closing connection");
     await conn.end();
   }
 });
