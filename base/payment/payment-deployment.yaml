@@ -19,10 +19,8 @@ spec:
           ports:
             - containerPort: 3001
           volumeMounts:
-            - name: paymentVolume
-              mountPath: /app
+            - name: auth-volume
+              mountPath: /app/temp
       volumes:
-        - name: paymentVolume
-          hostPath:
-              path: /data/payment
-              type: DirectoryOrCreate
+        - name: auth-volume
+          emptyDir: {} 

@@ -19,10 +19,8 @@ spec:
           ports:
             - containerPort: 3000
           volumeMounts:
-            - name:  auth-volume
-              mountPath:  /app
+            - name: auth-volume
+              mountPath: /app/temp
       volumes:
-        - name:  auth-volume
-          hostPath:
-              path:  /
-              type:  DirectoryOrCreate 
+        - name: auth-volume
+          emptyDir: {} 

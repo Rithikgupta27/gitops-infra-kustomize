@@ -8,6 +8,6 @@ spec:
     spec:
       containers:
         - name: payment-container
-          image: rithikgupta001/payment-microservice:latest
+          image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/payment-service:latest
           ports:
             - containerPort: 3001
