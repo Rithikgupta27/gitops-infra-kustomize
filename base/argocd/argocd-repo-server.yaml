@@ -1,0 +1,36 @@
+# argo-cd-repo-server-ksops-patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: install-ksops
+          image: viaductoss/ksops:v3.0.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Installing KSOPS plugin and binary...";
+              mkdir -p /custom-tools/ksops;
+              cp /go/bin/ksops /custom-tools/ksops/ksops;
+              chmod +x /custom-tools/ksops/ksops;
+              # If ksops.so file is present...
+              if [ -f ksops.so ]; then cp ksops.so /custom-tools/ksops/ksops.so; fi;
+              echo "Done.";
+          volumeMounts:
+            - name: custom-tools
+              mountPath: /custom-tools
+      containers:
+        - name: argocd-repo-server
+          volumeMounts:
+            - name: custom-tools
+              mountPath: /usr/local/bin/ksops
+              subPath: ksops/ksops
+            - name: custom-tools
+              mountPath: /.config/kustomize/plugin/viaduct.ai/v1/ksops/ksops.so
+              subPath: ksops/ksops.so
+      volumes:
+        - name: custom-tools
+          emptyDir: {}

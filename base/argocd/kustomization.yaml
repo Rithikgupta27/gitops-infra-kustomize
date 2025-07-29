@@ -6,6 +6,6 @@ resources:
 
 patches:
   - path: argocd-cm.patch.yaml
-  - path: argocd-ksops.patch.yaml
+  - path: argocd-repo-server.yaml
 
 namespace: argocd

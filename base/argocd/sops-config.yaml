@@ -7,5 +7,4 @@ data:
   .sops.yaml: |
     creation_rules:
     key_groups:
-      - kms:
-          - arn:aws:kms:us-east-1:767397915565:key/cec7485f-1425-46f4-8923-b148599714bb
+      - kms: arn:aws:kms:us-east-1:767397915565:key/cec7485f-1425-46f4-8923-b148599714bb
