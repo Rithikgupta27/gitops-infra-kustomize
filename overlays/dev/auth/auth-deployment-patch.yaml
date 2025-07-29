@@ -8,10 +8,11 @@ spec:
     spec:
       serviceAccountName: ecr-reader
       containers:
-        - name: auth-container
+        - name: auth-container          
           image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest
+          envFrom:
+              - configMapRef:
+                  name: dev-envs
           ports:
             - containerPort: 3000
-          envFrom:
-            - configMapRef:
-                name: dev-envs
+          
