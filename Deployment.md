@@ -1,6 +1,6 @@
 Step 1: Create an EKS Cluster using eksctl
 
-eksctl create cluster --name kube-demo1 --region us-east-1 --nodegroup-name standard-workers --node-type t3.medium \
+eksctl create cluster --name kube-demo --region us-east-1 --nodegroup-name standard-workers --node-type t3.medium \
   --nodes 1 \
   --nodes-min 1 \
   --nodes-max 2 \
