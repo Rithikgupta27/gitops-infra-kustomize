@@ -1,23 +1,23 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress 
-metadata: 
-  name: payment-ingress
-  namespace: microservice
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/backend-protocol: HTTP
-    alb.ingress.kubernetes.io/healthcheck-path: "/"
-    alb.ingress.kubernetes.io/success-codes: "200,301,302,307"
-spec:
-  ingressClassName: alb
-  rules:
-    - http:
-        paths:
-          - path: /payment
-            pathType: Prefix
-            backend:
-              service:
-                name: payment-service
-                port:
-                  number: 80
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress 
+# metadata: 
+#   name: payment-ingress
+#   namespace: microservice
+#   annotations:
+#     kubernetes.io/ingress.class: alb
+#     alb.ingress.kubernetes.io/target-type: ip
+#     alb.ingress.kubernetes.io/backend-protocol: HTTP
+#     alb.ingress.kubernetes.io/healthcheck-path: "/"
+#     alb.ingress.kubernetes.io/success-codes: "200,301,302,307"
+# spec:
+#   ingressClassName: alb
+#   rules:
+#     - http:
+#         paths:
+#           - path: /payment
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: payment-service
+#                 port:
+#                   number: 80

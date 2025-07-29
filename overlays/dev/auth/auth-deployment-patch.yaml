@@ -12,7 +12,7 @@ spec:
           image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest
           envFrom:
               - configMapRef:
-                  name: dev-envs
+                  name: dev-envs-h94c8gd2bt
           ports:
             - containerPort: 3000
           
