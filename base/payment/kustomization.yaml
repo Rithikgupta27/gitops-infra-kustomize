@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - payment-deployment.yaml 
   - payment-service.yaml
-  - payment-ingress.yaml
+  # - payment-ingress.yaml
