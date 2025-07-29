@@ -6,8 +6,12 @@ metadata:
 spec:
   template:
     spec:
+      serviceAccountName: ecr-reader
       containers:
         - name: payment-container
           image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/payment-service:latest
           ports:
             - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: dev-envs

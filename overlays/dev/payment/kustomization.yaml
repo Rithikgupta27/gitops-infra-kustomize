@@ -18,5 +18,5 @@ configMapGenerator:
 # generators:
 #   - payment-secrets-generator.yaml
 
-patchesStrategicMerge:
-  - payment-deployment-patch.yaml
+patches:
+  - path: payment-deployment-patch.yaml
