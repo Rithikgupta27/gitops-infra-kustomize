@@ -13,7 +13,7 @@ labels:
 configMapGenerator:
   - name: dev-envs
     envs:
-      - ./dev.properties
+      - dev.properties
 
 patches:
   - path: auth-deployment-patch.yaml
