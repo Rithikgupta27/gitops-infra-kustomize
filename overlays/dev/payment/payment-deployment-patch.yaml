@@ -14,4 +14,4 @@ spec:
             - containerPort: 3001
           envFrom:
             - configMapRef:
-                name: dev-envs-h94c8gd2bt
+                name: dev-envs
