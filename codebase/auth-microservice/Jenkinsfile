@@ -2,18 +2,24 @@ pipeline {
   agent any
 
   environment {
-    AWS_DEFAULT_REGION     = 'us-east-1'
-    AWS_ACCESS_KEY_ID      = credentials('aws-creds').username
-    AWS_SECRET_ACCESS_KEY  = credentials('aws-creds').password
+    AWS_DEFAULT_REGION = 'us-east-1'
   }
 
   stages {
     stage('LOGIN TO ECR') {
       steps {
-        sh """
-          aws ecr get-login-password --region ${env.AWS_DEFAULT_REGION} | \
-          docker login --username AWS --password-stdin 767397915565.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com
-        """
+        withCredentials([
+          usernamePassword(
+            credentialsId: 'aws-creds', 
+            usernameVariable: 'AWS_ACCESS_KEY_ID', 
+            passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+          )
+        ]) {
+          sh """
+            aws ecr get-login-password --region ${env.AWS_DEFAULT_REGION} | \
+            docker login --username AWS --password-stdin 767397915565.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com
+          """
+        }
       }
     }
 
