@@ -1,0 +1,80 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-east-1'
+        ECR_URI = '767397915565.dkr.ecr.us-east-1.amazonaws.com/payment-service'
+        IMAGE_NAME = 'payment-service'
+    }
+
+    stages {
+        stage('Prepare Tag') {
+            steps {
+                script {
+                    // Try to use Git commit SHA if available, fallback to Jenkins build number
+                    def gitCommit = sh(script: "git rev-parse --short HEAD || echo ${env.BUILD_NUMBER}", returnStdout: true).trim()
+                    env.IMAGE_TAG = gitCommit
+                    env.FULL_IMAGE_URI = "${ECR_URI}:${env.IMAGE_TAG}"
+                    echo "Using image tag: ${env.IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                sh '''
+                    aws ecr get-login-password --region $AWS_REGION | \
+                    docker login --username AWS --password-stdin $ECR_URI
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG ./codebase/payment-microservice/'
+            }
+        }
+
+        stage('Tag Docker Image') {
+            steps {
+                sh 'docker tag $IMAGE_NAME:$IMAGE_TAG $FULL_IMAGE_URI'
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                sh 'docker push $FULL_IMAGE_URI'
+            }
+        }
+
+        stage('Update GitOps Repo') {
+          environment {
+              GIT_REPO = 'https://github.com/Rithikgupta27/gitops-infra-kustomize.git'
+              GIT_BRANCH = 'gitops'
+          }
+          steps {
+              withCredentials([usernamePassword(credentialsId: 'git-creds', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
+                  sh '''
+                      git config --global user.email "rithikg2700@gmail.com"
+                      git config --global user.name "Rithikgupta27"
+
+                      # Clone the GitOps repo
+                      rm -rf gitops-infra-kustomize
+                      git clone --single-branch --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/Rithikgupta27/gitops-infra-kustomize.git
+                      cd gitops-infra-kustomize/overlays/dev/payment/
+
+                      # Update image tag
+                      sed -i "s|image: .*|image: ${FULL_IMAGE_URI}|" payment-deployment-patch.yaml
+
+                      git add payment-deployment-patch.yaml
+                      git commit -m "chore: update payment-service image to ${IMAGE_TAG}"
+                      git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/Rithikgupta27/gitops-infra-kustomize.git HEAD:${GIT_BRANCH}
+                  '''
+              }
+          }
+      }
+
+    }
+
+    
+}
