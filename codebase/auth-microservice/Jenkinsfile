@@ -1,63 +1,58 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    AWS_DEFAULT_REGION = 'us-east-1'
-    ECR_REPO_NAME      = 'test'
-    AWS_ACCOUNT_ID     = '767397915565'
-  }
-
-  stages {
-    stage('Check Tools') {
-      steps {
-        sh 'which aws || echo "aws not found"'
-        sh 'which docker || echo "docker not found"'
-      }
+    environment {
+        AWS_REGION = 'us-east-1'
+        ECR_REPO_NAME = 'test' 
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
-    stage('LOGIN TO ECR') {
-      steps {
-        withCredentials([
-          usernamePassword(
-            credentialsId: 'aws-creds',
-            usernameVariable: 'AWS_ACCESS_KEY_ID',
-            passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-          )
-        ]) {
-          sh """
-            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-            aws configure set default.region $AWS_DEFAULT_REGION
-
-            aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
-              docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-          """
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
         }
-      }
-    }
 
-    stage('BUILD STAGE') {
-      steps {
-        script {
-          def tag = (1..5).collect {
-            (('A'..'Z') + ('a'..'z') + ('0'..'9')).join().toList().shuffle().take(1).join()
-          }.join()
-
-          env.IMAGE_TAG = tag
-          env.ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}"
-
-          echo "Generated Tag: ${tag}"
-          sh "docker build -t ${env.ECR_REPO}:${env.IMAGE_TAG} ."
+        stage('Get AWS Account ID') {
+            steps {
+                script {
+                    env.AWS_ACCOUNT_ID = sh(
+                        script: "aws sts get-caller-identity --query Account --output text",
+                        returnStdout: true
+                    ).trim()
+                }
+            }
         }
-      }
+
+        stage('Login to ECR') {
+            steps {
+                sh """
+                aws ecr get-login-password --region $AWS_REGION | \
+                docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                """
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                docker build -t $ECR_REPO_NAME:$IMAGE_TAG .
+                docker tag $ECR_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
+                """
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG"
+            }
+        }
     }
 
-    stage('PUSH TO ECR') {
-      steps {
-        script {
-          sh "docker push ${env.ECR_REPO}:${env.IMAGE_TAG}"
+    post {
+        always {
+            echo "Done: $ECR_REPO_NAME:$IMAGE_TAG"
         }
-      }
     }
-  }
 }
