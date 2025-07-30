@@ -24,7 +24,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${REPO_NAME}:${IMAGE_TAG} ."
+                    sh "sudo docker build -t ${REPO_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
@@ -32,7 +32,7 @@ pipeline {
         stage('Tag Docker Image') {
             steps {
                 script {
-                    sh "docker tag ${REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}"
+                    sh "sudo docker tag ${REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}"
                 }
             }
         }
@@ -40,7 +40,7 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 script {
-                    sh "docker push ${ECR_URI}:${IMAGE_TAG}"
+                    sh "sudo docker push ${ECR_URI}:${IMAGE_TAG}"
                 }
             }
         }
