@@ -3,56 +3,55 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
-        ECR_REPO_NAME = 'test' 
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        REPO_NAME = 'test'
+        IMAGE_TAG = 'latest'
+        ACCOUNT_ID = '767397915565'
+        ECR_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Get AWS Account ID') {
-            steps {
-                script {
-                    env.AWS_ACCOUNT_ID = sh(
-                        script: "aws sts get-caller-identity --query Account --output text",
-                        returnStdout: true
-                    ).trim()
-                }
-            }
-        }
-
         stage('Login to ECR') {
             steps {
-                sh """
-                aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-                """
+                script {
+                    sh """
+                        aws ecr get-login-password --region $AWS_REGION | \
+                        docker login --username AWS --password-stdin ${ECR_URI}
+                    """
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                docker build -t $ECR_REPO_NAME:$IMAGE_TAG .
-                docker tag $ECR_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
-                """
+                script {
+                    sh "docker build -t ${REPO_NAME}:${IMAGE_TAG} ."
+                }
+            }
+        }
+
+        stage('Tag Docker Image') {
+            steps {
+                script {
+                    sh "docker tag ${REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}"
+                }
             }
         }
 
         stage('Push to ECR') {
             steps {
-                sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG"
+                script {
+                    sh "docker push ${ECR_URI}:${IMAGE_TAG}"
+                }
             }
         }
     }
 
     post {
-        always {
-            echo "Done: $ECR_REPO_NAME:$IMAGE_TAG"
+        success {
+            echo "Docker image pushed successfully to ${ECR_URI}:${IMAGE_TAG}"
+        }
+        failure {
+            echo "Build failed"
         }
     }
 }
