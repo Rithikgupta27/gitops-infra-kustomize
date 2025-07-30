@@ -1,63 +1,70 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    AWS_DEFAULT_REGION = 'us-east-1'
-    ECR_REPO_NAME      = 'test'
-    AWS_ACCOUNT_ID     = '767397915565'
-  }
-
-  stages {
-    stage('Check Tools') {
-      steps {
-        sh 'which aws || echo "aws not found"'
-        sh 'which docker || echo "docker not found"'
-      }
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID = '767397915565'
+        ECR_REPO_NAME = 'test'
     }
 
-    stage('LOGIN TO ECR') {
-      steps {
-        withCredentials([
-          usernamePassword(
-            credentialsId: 'aws-creds',
-            usernameVariable: 'AWS_ACCESS_KEY_ID',
-            passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-          )
-        ]) {
-          sh """
-            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-            aws configure set default.region $AWS_DEFAULT_REGION
+    stages {
+        stage('Install Docker & AWS CLI') {
+            steps {
+                sh '''
+                    apt-get update && apt-get install -y docker.io unzip curl
 
-            aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
-              docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-          """
+                    # Install AWS CLI v2
+                    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                    unzip awscliv2.zip
+                    ./aws/install || true  # Ignore if already installed
+
+                    aws --version
+                    docker --version
+                '''
+            }
         }
-      }
-    }
 
-    stage('BUILD STAGE') {
-      steps {
-        script {
-          def tag = (1..5).collect {
-            (('A'..'Z') + ('a'..'z') + ('0'..'9')).join().toList().shuffle().take(1).join()
-          }.join()
+        stage('Login to ECR') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-creds',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                        aws configure set default.region $AWS_DEFAULT_REGION
 
-          env.IMAGE_TAG = tag
-          env.ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}"
-
-          echo "Generated Tag: ${tag}"
-          sh "docker build -t ${env.ECR_REPO}:${env.IMAGE_TAG} ."
+                        aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
+                        docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+                    '''
+                }
+            }
         }
-      }
-    }
 
-    stage('PUSH TO ECR') {
-      steps {
-        script {
-          sh "docker push ${env.ECR_REPO}:${env.IMAGE_TAG}"
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def tag = (1..5).collect {
+                        (('A'..'Z') + ('a'..'z') + ('0'..'9')).join().toList().shuffle().take(1).join()
+                    }.join()
+
+                    env.IMAGE_TAG = tag
+                    env.ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}"
+
+                    echo "Generated Tag: ${tag}"
+                    sh "docker build -t ${env.ECR_REPO}:${env.IMAGE_TAG} ."
+                }
+            }
         }
-      }
+
+        stage('Push to ECR') {
+            steps {
+                sh "docker push ${env.ECR_REPO}:${env.IMAGE_TAG}"
+            }
+        }
     }
-  }
 }
