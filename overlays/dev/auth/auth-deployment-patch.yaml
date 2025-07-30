@@ -9,7 +9,7 @@ spec:
       serviceAccountName: ecr-reader
       containers:
         - name: auth-container          
-          image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest
+          image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/auth-service:bf70fe9
           envFrom:
               - configMapRef:
                   name: dev-envs-h94c8gd2bt
