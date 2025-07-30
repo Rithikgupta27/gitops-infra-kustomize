@@ -58,4 +58,20 @@ app.post("/transfer", checkSession, async (req, res) => {
 });
 
 
+app.get("/balance", checkSession, async (req, res) => {
+  const conn = await mysql.createConnection(dbConfig);
+
+  try {
+    const [[userRow]] = await conn.execute("SELECT username FROM users WHERE id = ?", [req.userId]);
+    const username = userRow.username;
+
+    const [[account]] = await conn.execute("SELECT balance FROM accounts WHERE username = ?", [username]);
+    res.send({ username, balance: account.balance });
+  } catch (err) {
+    res.status(500).send({ error: "Error fetching balance" });
+  } finally {
+    await conn.end();
+  }
+});
+
 app.listen(3001, () => console.log("Payment running on port 3001"));
