@@ -5,11 +5,21 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECR_URI = '767397915565.dkr.ecr.us-east-1.amazonaws.com/test'
         IMAGE_NAME = 'test'
-        IMAGE_TAG = 'latest'
     }
 
     stages {
-        
+        stage('Prepare Tag') {
+            steps {
+                script {
+                    // Try to use Git commit SHA if available, fallback to Jenkins build number
+                    def gitCommit = sh(script: "git rev-parse --short HEAD || echo ${env.BUILD_NUMBER}", returnStdout: true).trim()
+                    env.IMAGE_TAG = gitCommit
+                    env.FULL_IMAGE_URI = "${ECR_URI}:${env.IMAGE_TAG}"
+                    echo "Using image tag: ${env.IMAGE_TAG}"
+                }
+            }
+        }
+
         stage('Login to ECR') {
             steps {
                 sh '''
@@ -27,13 +37,13 @@ pipeline {
 
         stage('Tag Docker Image') {
             steps {
-                sh 'docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG'
+                sh 'docker tag $IMAGE_NAME:$IMAGE_TAG $FULL_IMAGE_URI'
             }
         }
 
         stage('Push to ECR') {
             steps {
-                sh 'docker push $ECR_URI:$IMAGE_TAG'
+                sh 'docker push $FULL_IMAGE_URI'
             }
         }
     }
