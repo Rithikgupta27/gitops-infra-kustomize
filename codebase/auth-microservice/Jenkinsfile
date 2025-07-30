@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
-        ECR_URI = '767397915565.dkr.ecr.us-east-1.amazonaws.com/test'
-        IMAGE_NAME = 'test'
+        ECR_URI = '767397915565.dkr.ecr.us-east-1.amazonaws.com/auth-service'
+        IMAGE_NAME = 'auth-service'
     }
 
     stages {
