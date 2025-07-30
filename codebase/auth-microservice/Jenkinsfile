@@ -49,7 +49,7 @@ pipeline {
 
         stage('Update GitOps Repo') {
           environment {
-              GIT_REPO = 'https://github.com/your-org/gitops-infra-kustomize.git'
+              GIT_REPO = 'https://github.com/Rithikgupta27/gitops-infra-kustomize.git'
               GIT_BRANCH = 'gitops'
           }
           steps {
@@ -60,7 +60,7 @@ pipeline {
 
                       # Clone the GitOps repo
                       rm -rf gitops-infra-kustomize
-                      git clone --single-branch --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/your-org/gitops-infra-kustomize.git
+                      git clone --single-branch --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/Rithikgupta27/gitops-infra-kustomize.git
                       cd gitops-infra-kustomize/overlays/dev/auth/
 
                       # Update image tag
@@ -68,7 +68,7 @@ pipeline {
 
                       git add auth-deployment-patch.yaml
                       git commit -m "chore: update auth-service image to ${IMAGE_TAG}"
-                      git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/your-org/gitops-infra-kustomize.git HEAD:${GIT_BRANCH}
+                      git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/Rithikgupta27/gitops-infra-kustomize.git HEAD:${GIT_BRANCH}
                   '''
               }
           }
