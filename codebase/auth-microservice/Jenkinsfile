@@ -1,0 +1,46 @@
+pipeline {
+  agent any
+
+  environment {
+    AWS_DEFAULT_REGION     = 'us-east-1'
+    AWS_ACCESS_KEY_ID      = credentials('aws-creds').username
+    AWS_SECRET_ACCESS_KEY  = credentials('aws-creds').password
+  }
+
+  stages {
+    stage('LOGIN TO ECR') {
+      steps {
+        sh """
+          aws ecr get-login-password --region ${env.AWS_DEFAULT_REGION} | \
+          docker login --username AWS --password-stdin 767397915565.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com
+        """
+      }
+    }
+
+    stage('BUILD STAGE') {
+      steps {
+        script {
+          // Generate random 5-character alphanumeric tag
+          def tag = (1..5).collect {
+            (('A'..'Z') + ('a'..'z') + ('0'..'9')).join().toList().shuffle().take(1).join()
+          }.join()
+
+          echo "Generated Tag: ${tag}"
+          env.IMAGE_TAG = tag
+
+          // Build Docker image with full ECR repo name
+          env.ECR_REPO = "767397915565.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com/test"
+          sh "docker build -t ${env.ECR_REPO}:${env.IMAGE_TAG} ."
+        }
+      }
+    }
+
+    stage('PUSH TO ECR') {
+      steps {
+        script {
+          sh "docker push ${env.ECR_REPO}:${env.IMAGE_TAG}"
+        }
+      }
+    }
+  }
+}
