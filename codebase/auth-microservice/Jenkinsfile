@@ -1,8 +1,15 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'amazon/aws-cli' 
+      args '-v /var/run/docker.sock:/var/run/docker.sock' 
+    }
+  }
 
   environment {
     AWS_DEFAULT_REGION = 'us-east-1'
+    ECR_REPO_NAME      = 'test'
+    AWS_ACCOUNT_ID     = '767397915565'
   }
 
   stages {
@@ -10,14 +17,18 @@ pipeline {
       steps {
         withCredentials([
           usernamePassword(
-            credentialsId: 'aws-creds', 
-            usernameVariable: 'AWS_ACCESS_KEY_ID', 
+            credentialsId: 'aws-creds',
+            usernameVariable: 'AWS_ACCESS_KEY_ID',
             passwordVariable: 'AWS_SECRET_ACCESS_KEY'
           )
         ]) {
           sh """
-            aws ecr get-login-password --region ${env.AWS_DEFAULT_REGION} | \
-            docker login --username AWS --password-stdin 767397915565.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set default.region $AWS_DEFAULT_REGION
+
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
+              docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
           """
         }
       }
@@ -26,16 +37,14 @@ pipeline {
     stage('BUILD STAGE') {
       steps {
         script {
-          // Generate random 5-character alphanumeric tag
           def tag = (1..5).collect {
             (('A'..'Z') + ('a'..'z') + ('0'..'9')).join().toList().shuffle().take(1).join()
           }.join()
 
-          echo "Generated Tag: ${tag}"
           env.IMAGE_TAG = tag
+          env.ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}"
 
-          // Build Docker image with full ECR repo name
-          env.ECR_REPO = "767397915565.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com/test"
+          echo "Generated Tag: ${tag}"
           sh "docker build -t ${env.ECR_REPO}:${env.IMAGE_TAG} ."
         }
       }
