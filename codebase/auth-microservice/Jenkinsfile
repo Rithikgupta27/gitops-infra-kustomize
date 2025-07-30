@@ -13,10 +13,9 @@ pipeline {
                 sh '''
                     apt-get update && apt-get install -y docker.io unzip curl
 
-                    # Install AWS CLI v2
                     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                     unzip awscliv2.zip
-                    ./aws/install || true  # Ignore if already installed
+                    sudo ./aws/install || true  
 
                     aws --version
                     docker --version
