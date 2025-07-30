@@ -1,10 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'amazon/aws-cli' 
-      args '-v /var/run/docker.sock:/var/run/docker.sock' 
-    }
-  }
+  agent any
 
   environment {
     AWS_DEFAULT_REGION = 'us-east-1'
@@ -13,6 +8,13 @@ pipeline {
   }
 
   stages {
+    stage('Check Tools') {
+      steps {
+        sh 'which aws || echo "aws not found"'
+        sh 'which docker || echo "docker not found"'
+      }
+    }
+
     stage('LOGIN TO ECR') {
       steps {
         withCredentials([
