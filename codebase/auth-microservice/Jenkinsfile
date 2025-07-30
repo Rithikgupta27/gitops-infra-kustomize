@@ -3,55 +3,46 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
-        REPO_NAME = 'test'
+        ECR_URI = '767397915565.dkr.ecr.us-east-1.amazonaws.com/test'
+        IMAGE_NAME = 'test'
         IMAGE_TAG = 'latest'
-        ACCOUNT_ID = '767397915565'
-        ECR_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
     }
 
     stages {
         stage('Login to ECR') {
             steps {
-                script {
-                    sh """
-                        aws ecr get-login-password --region $AWS_REGION | \
-                        docker login --username AWS --password-stdin ${ECR_URI}
-                    """
-                }
+                sh '''
+                    aws ecr get-login-password --region $AWS_REGION | \
+                    docker login --username AWS --password-stdin $ECR_URI
+                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${REPO_NAME}:${IMAGE_TAG} ."
-                }
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
             }
         }
 
         stage('Tag Docker Image') {
             steps {
-                script {
-                    sh "docker tag ${REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}"
-                }
+                sh 'docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG'
             }
         }
 
         stage('Push to ECR') {
             steps {
-                script {
-                    sh "docker push ${ECR_URI}:${IMAGE_TAG}"
-                }
+                sh 'docker push $ECR_URI:$IMAGE_TAG'
             }
         }
     }
 
     post {
         success {
-            echo "Docker image pushed successfully to ${ECR_URI}:${IMAGE_TAG}"
+            echo '✅ Docker image pushed successfully!'
         }
         failure {
-            echo "Build failed"
+            echo '❌ Build or push failed!'
         }
     }
 }
