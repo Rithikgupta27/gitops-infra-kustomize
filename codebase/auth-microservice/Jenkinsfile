@@ -46,14 +46,35 @@ pipeline {
                 sh 'docker push $FULL_IMAGE_URI'
             }
         }
+
+        stage('Update GitOps Repo') {
+          environment {
+              GIT_REPO = 'https://github.com/your-org/gitops-infra-kustomize.git'
+              GIT_BRANCH = 'gitops'
+          }
+          steps {
+              withCredentials([usernamePassword(credentialsId: 'git-creds', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
+                  sh '''
+                      git config --global user.email "rithikg2700@gmail.com"
+                      git config --global user.name "Rithikgupta27"
+
+                      # Clone the GitOps repo
+                      rm -rf gitops-infra-kustomize
+                      git clone --single-branch --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/your-org/gitops-infra-kustomize.git
+                      cd gitops-infra-kustomize/overlays/dev/auth/
+
+                      # Update image tag
+                      sed -i "s|image: .*|image: ${FULL_IMAGE_URI}|" auth-deployment-patch.yaml
+
+                      git add auth-deployment-patch.yaml
+                      git commit -m "chore: update auth-service image to ${IMAGE_TAG}"
+                      git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/your-org/gitops-infra-kustomize.git HEAD:${GIT_BRANCH}
+                  '''
+              }
+          }
+      }
+
     }
 
-    post {
-        success {
-            echo '✅ Docker image pushed successfully!'
-        }
-        failure {
-            echo '❌ Build or push failed!'
-        }
-    }
+    
 }
