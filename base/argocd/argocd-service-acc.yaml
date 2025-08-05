@@ -4,4 +4,4 @@ metadata:
   name: argocd-sa
   namespace: argocd
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::767397915565:role/aws-service-role/cks.kms.amazonaws.com/AWSServiceRoleForKeyManagementServiceCustomKeyStores
+    eks.amazonaws.com/role-arn: arn:aws:iam::<Account ID>:role/aws-service-role/cks.kms.amazonaws.com/AWSServiceRoleForKeyManagementServiceCustomKeyStores

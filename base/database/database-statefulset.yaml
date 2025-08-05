@@ -17,7 +17,7 @@ spec:
       serviceAccountName: ecr-reader
       containers:
       - name: database-container
-        image: 767397915565.dkr.ecr.us-east-1.amazonaws.com/database-service:latest
+        image: <Account ID>.dkr.ecr.us-east-1.amazonaws.com/database-service:latest
         ports:
         - containerPort: 3306
           name: mysql-port
