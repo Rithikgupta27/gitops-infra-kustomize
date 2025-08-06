@@ -1,0 +1,125 @@
+# Setting up EKS cluster
+--> Creating cluster
+
+kubectl patch deployment argocd-server -n argocd \
+  --type='json' \
+  -p='[
+    {
+      "op": "replace",
+      "path": "/spec/template/spec/containers/0/args",
+      "value": ["argocd-server", "--insecure"]
+    }
+  ]'
+
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode
+
+1) eksctl create cluster \
+  --name ecom-cluster \
+  --region us-east-1 \
+  --nodegroup-name ecom-nodes \
+  --node-type t3.large \
+  --nodes 1 \
+  --nodes-min 1 \
+  --nodes-max 2 \
+  --with-oidc \
+  --managed
+
+--> Update the kube-config
+aws eks update-kubeconfig --name ecom-cluster --region us-east-1
+
+--> Enable the oidc in cluster
+eksctl utils associate-iam-oidc-provider \
+  --cluster $CLUSTER_NAME \
+  --region $REGION \
+  --approve
+
+--> Installing ingress controller
+1) Create IAM policy
+
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.13.0/docs/install/iam_policy.json
+
+aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy.json
+
+2) Attach that policy to service account
+
+eksctl create iamserviceaccount \
+    --cluster=ecom-cluster \
+    --namespace=kube-system \
+    --name=aws-load-balancer-controller \
+    --attach-policy-arn=arn:aws:iam::016311861830:policy/AWSLoadBalancerControllerIAMPolicy \
+    --override-existing-serviceaccounts \
+    --region us-east-1 \
+    --approve
+
+3) Install ingress controller using helm
+
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update eks
+
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system \
+  --set clusterName=ecom-cluster \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=us-east-1 \
+  --set vpcId=vpc-0ccb095777383085d
+
+# Setting up argocd
+--> Create policy and then role and attach role to the policy with oidc 
+aws iam create-policy \
+  --policy-name EKSKMSAccessPolicy \
+  --policy-document file://argocd-kms-policy.json
+
+eksctl create iamserviceaccount \
+  --name argocd-sa \
+  --namespace argocd \
+  --cluster ecom-cluster \
+  --attach-policy-arn arn:aws:iam::016311861830:policy/EKSKMSAccessPolicy \
+  --approve \
+  --override-existing-serviceaccounts
+
+# Installing EBS CSI Driver
+
+eksctl create iamserviceaccount \
+  --cluster ecom-cluster \
+  --name ebs-csi-controller-sa \
+  --namespace kube-system \
+  --region us-east-1 \
+  --role-name AmazonEKS_EBS_CSI_DriverRole \
+  --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+  --approve
+
+
+eksctl create addon \
+  --name aws-ebs-csi-driver \
+  --cluster ecom-cluster \
+  --region us-east-1 \
+  --service-account-role-arn arn:aws:iam::016311861830:role/AmazonEKS_EBS_CSI_DriverRole \
+  --force
+
+
+
+
+arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+
+eksctl create iamserviceaccount \
+  --name ecr-reader \
+  --namespace default \
+  --cluster ecom-cluster \
+  --attach-policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess \
+  --approve \
+  --override-existing-serviceaccounts
+
+arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+eksctl create iamserviceaccount \
+  --name s3acess \
+  --namespace default \
+  --cluster ecom-cluster \
+  --attach-policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess \
+  --approve \
+  --override-existing-serviceaccounts
+
+
+
